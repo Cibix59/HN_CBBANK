@@ -1,7 +1,7 @@
 package components;
 //1.1.1 Creation of the client class
 
-class Client {
+public class Client {
 
     private static int cpt = 1; 
 
@@ -25,6 +25,6 @@ class Client {
     public void setClientNumber(int clientNumber) { this.clientNumber = clientNumber; }
     
     public String toString() {
-        return "numero :" + clientNumber + " \nprenom :" + firstName + "\nom : " + name;
+        return "numero :" + clientNumber + " \nprenom :" + firstName + "\nnom : " + name;
     }
 }
