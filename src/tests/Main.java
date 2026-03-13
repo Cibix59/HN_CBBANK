@@ -9,7 +9,7 @@ import java.util.Arrays;
 //1.1.2 Creation of main class for tests
 import java.util.Hashtable;
 import java.util.Map;
-
+//1.1.2 Creation of main class for tests
 public class Main {
 	public static void main(String[] args) {
 		Client[] tableauClients;
