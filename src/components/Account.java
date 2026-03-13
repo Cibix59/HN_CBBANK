@@ -25,8 +25,19 @@ public abstract class Account {
 
 	public double getBalance() { return balance; }
 
-	public void setBalance(Flow flow) { 
-		this.balance += flow.getAmount();
+	public void setBalance(Flow flow) {
+		//Le mieux serais que cela soit géré directement par les enfants
+		switch (flow) {
+		case Credit c-> this.balance += c.getAmount();
+		case Debit d-> this.balance -= d.getAmount();
+		case Transfert t-> {
+			if (this.accountNumber == t.getTargetAccountNumber())
+				this.balance += t.getAmount();
+			else if (this.accountNumber == t.getSourceAccountNumber())
+				this.balance -= t.getAmount();
+		}
+		default -> System.out.println("Type de flux inconnu : " + flow.getClass().getSimpleName());
+		}
 	}
 
 	public int getAccountNumber() { return accountNumber; }

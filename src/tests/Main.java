@@ -16,6 +16,8 @@ import java.util.Date;
 //1.1.2 Creation of main class for tests
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
 //1.1.2 Creation of main class for tests
 public class Main {
 	public static void main(String[] args) {
@@ -31,8 +33,44 @@ public class Main {
 		displayHashtable(hashtableAccounts);
 		//1.3.4 Creation of the flow array
 		Flow[] tableauDeFlux = generateFlows(tableauDeComptes);
+		applyFlows(tableauDeFlux, hashtableAccounts);
+	    // Affichage final de la hashtable après application des Flows
+	    displayHashtable(hashtableAccounts);
 	}
 
+	//1.3.5 Updating accounts
+	public static void applyFlows(Flow[] flows, Hashtable<Integer, Account> hashtableAccounts) {
+
+	    for (Flow flow : flows) {
+	        if (flow instanceof Transfert) {
+	            // Transfert : maj des 2 comptes (source et cible)
+	            Transfert transfert = (Transfert) flow;
+
+	            Account target = hashtableAccounts.get(transfert.getTargetAccountNumber());
+	            Account source = hashtableAccounts.get(transfert.getSourceAccountNumber());
+
+	            if (target != null) target.setBalance(transfert);
+	            if (source != null) source.setBalance(transfert);
+
+	        } else {
+	            // Credit ou Debit : maj du compte cible uniquement
+	            Account account = hashtableAccounts.get(flow.getTargetAccountNumber());
+	            if (account != null) account.setBalance(flow);
+	        }
+	    }
+
+	    // Vérification des soldes négatifs avec Optional, Predicate et Stream
+	    Predicate<Account> isNegative = account -> account.getBalance() < 0;
+
+	    hashtableAccounts.values().stream()
+	    .filter(isNegative)
+	    .forEach(account -> Optional.of(account)
+	        .ifPresent(a -> System.out.println("Solde négatif détecté : " + a.toString()))
+	    );
+
+
+	}
+	
 	/**
 	 * genere un jeu d'essai de clients
 	 */
