@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<accounts>
+    <account>
+        <type>CurrentAccount</type>
+        <label>Compte courant</label>
+        <clientName>name1</clientName>
+        <clientFirstName>firstname1</clientFirstName>
+    </account>
+    <account>
+        <type>SavingsAccount</type>
+        <label>Compte Epargne</label>
+        <clientName>name1</clientName>
+        <clientFirstName>firstname1</clientFirstName>
+    </account>
+    <account>
+        <type>CurrentAccount</type>
+        <label>Compte courant</label>
+        <clientName>name2</clientName>
+        <clientFirstName>firstname2</clientFirstName>
+    </account>
+    <account>
+        <type>SavingsAccount</type>
+        <label>Compte Epargne</label>
+        <clientName>name2</clientName>
+        <clientFirstName>firstname2</clientFirstName>
+    </account>
+    <account>
+        <type>CurrentAccount</type>
+        <label>Compte courant</label>
+        <clientName>name3</clientName>
+        <clientFirstName>firstname3</clientFirstName>
+    </account>
+    <account>
+        <type>SavingsAccount</type>
+        <label>Compte Epargne</label>
+        <clientName>name3</clientName>
+        <clientFirstName>firstname3</clientFirstName>
+    </account>
+</accounts>

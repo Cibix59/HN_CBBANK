@@ -16,19 +16,28 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
-//1.1.2 Creation of main class for tests
+
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
-//1.1.2 Creation of main class for tests
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 public class Main {
 	public static void main(String[] args) {
 		Client[] tableauClients;
 		tableauClients = generateClients(3);
 		displayClients(tableauClients);
 		//1.2.3 Creation of the table account
-		Account[] tableauDeComptes = generateAccounts(tableauClients);
+		//Account[] tableauDeComptes = generateAccounts(tableauClients);
+		Account[] tableauDeComptes = loadAccountsFromXml("src/accounts.xml");
+
 		displayAccounts(tableauDeComptes);
 
 		//1.3.1 Adaptation of the table of accounts
@@ -258,25 +267,74 @@ public class Main {
 
 	// extracteur du json
 	private static String extract(String obj, String key) {
-	    String search = "\"" + key + "\"";
-	    int keyIndex = obj.indexOf(search);
-	    if (keyIndex == -1) return "null";
+		String search = "\"" + key + "\"";
+		int keyIndex = obj.indexOf(search);
+		if (keyIndex == -1) return "null";
 
-	    int colon = obj.indexOf(':', keyIndex) + 1;
+		int colon = obj.indexOf(':', keyIndex) + 1;
 
-	    // Saute les espaces
-	    while (colon < obj.length() && obj.charAt(colon) == ' ') colon++;
+		// Saute les espaces
+		while (colon < obj.length() && obj.charAt(colon) == ' ') colon++;
 
-	    // recupere les strings
-	    if (obj.charAt(colon) == '"') {
-	        int end = obj.indexOf('"', colon + 1);
-	        return obj.substring(colon + 1, end);
-	    }
+		// recupere les strings
+		if (obj.charAt(colon) == '"') {
+			int end = obj.indexOf('"', colon + 1);
+			return obj.substring(colon + 1, end);
+		}
 
-	    // recupere les primitives
-	    int end = colon;
-	    while (end < obj.length() && obj.charAt(end) != ',' && obj.charAt(end) != '}') end++;
-	    return obj.substring(colon, end).trim();
+		// recupere les primitives
+		int end = colon;
+		while (end < obj.length() && obj.charAt(end) != ',' && obj.charAt(end) != '}') end++;
+		return obj.substring(colon, end).trim();
+	}
+
+	//2.2 XML file of account 
+	public static Account[] loadAccountsFromXml(String filePath) {
+
+		Path path = Paths.get(filePath);
+		java.util.List<Account> accountList = new java.util.ArrayList<>();
+
+		// try-with-resources 
+		try (var inputStream = Files.newInputStream(path)) {
+
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document document = builder.parse(inputStream);
+
+			document.getDocumentElement().normalize();
+
+			NodeList nodeList = document.getElementsByTagName("account");
+
+			for (int i = 0; i < nodeList.getLength(); i++) {
+				Element element = (Element) nodeList.item(i);
+
+				String type   = element.getElementsByTagName("type").item(0).getTextContent();
+				String label = element.getElementsByTagName("label").item(0).getTextContent();
+				String clientName  = element.getElementsByTagName("clientName").item(0).getTextContent();
+				String clientFirst = element.getElementsByTagName("clientFirstName").item(0).getTextContent();
+				Client client = new Client(clientName, clientFirst);
+
+				Account account = null;
+				switch (type) {
+				case "CurrentAccount":
+					account = new CurrentAccount(label, client);
+					break;
+				case "SavingsAccount":
+					account = new SavingsAccount(label, client);
+					break;
+				default:
+					System.out.println("Type de compte inconnu : " + type);
+				}
+
+				if (account != null) accountList.add(account);
+			}
+
+		} catch (Exception e) {
+			System.out.println("Problème lecture fichier XML : " + e.getMessage());
+			return new Account[0];
+		}
+
+		return accountList.toArray(new Account[0]);
 	}
 
 
