@@ -2,10 +2,17 @@ package tests;
 import components.Account;
 //1.1.2 Creation of main class for tests
 import components.Client;
+import components.Credit;
 import components.CurrentAccount;
+import components.Debit;
+import components.Flow;
 import components.SavingsAccount;
+import components.Transfert;
 
-import java.util.Arrays; 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Date;
 //1.1.2 Creation of main class for tests
 import java.util.Hashtable;
 import java.util.Map;
@@ -22,6 +29,8 @@ public class Main {
 		//1.3.1 Adaptation of the table of accounts
 		Hashtable<Integer, Account> hashtableAccounts = generateHashtable(tableauDeComptes);
 		displayHashtable(hashtableAccounts);
+		//1.3.4 Creation of the flow array
+		Flow[] tableauDeFlux = generateFlows(tableauDeComptes);
 	}
 
 	/**
@@ -62,6 +71,54 @@ public class Main {
 		}
 		return hashtable;
 	}
+	
+	public static Flow[] generateFlows(Account[] accounts) {
+		
+		//add 2 days to the current date
+	    LocalDate localDate = LocalDate.now().plusDays(2);
+	    Date effectDate= Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+	    int nbCurrentAccounts = 0;
+	    int nbSavingsAccounts = 0;
+	    for (Account account : accounts) {
+	        if (account instanceof CurrentAccount) nbCurrentAccounts++;
+	        else if (account instanceof SavingsAccount) nbSavingsAccounts++;
+	    }
+
+	    // 1 débit + crédits courants + crédits épargne + 1 transfert
+	    Flow[] flows = new Flow[1 + nbCurrentAccounts + nbSavingsAccounts + 1];
+	    int index = 0;
+
+	    // debit 50€ compte 1
+	    Debit debit = new Debit("Débit compte n°1", 50.0, 1, false);
+	    debit.setDate(effectDate);
+	    flows[index++] = debit;
+
+	    // credit 100.50€ sur tous les comptes courants
+	    for (Account account : accounts) {
+	        if (account instanceof CurrentAccount) {
+	            Credit credit = new Credit("Crédit compte courant", 100.50, account.getAccountNumber(), false);
+	            credit.setDate(effectDate);
+	            flows[index++] = credit;
+	        }
+	    }
+
+	    // credit 1500€ sur tous les comptes épargne
+	    for (Account account : accounts) {
+	        if (account instanceof SavingsAccount) {
+	            Credit credit = new Credit("Crédit compte épargne", 1500.0, account.getAccountNumber(), false);
+	            credit.setDate(effectDate);
+	            flows[index++] = credit;
+	        }
+	    }
+
+	    // Transfert 50€ compte n°1 -> compte n°2
+	    Transfert transfert = new Transfert("Transfert n°1 vers n°2", 50.0, 2, false, 1);
+	    transfert.setDate(effectDate);
+	    flows[index] = transfert;
+
+	    return flows;
+	}
 
 
 	/**
@@ -90,4 +147,6 @@ public class Main {
 				))
 		.forEach(entry -> System.out.println("Clé : " + entry.getKey() + " -> " + entry.getValue().toString()));
 	}
+	
+
 }
