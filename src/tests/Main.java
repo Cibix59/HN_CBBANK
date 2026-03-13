@@ -9,6 +9,9 @@ import components.Flow;
 import components.SavingsAccount;
 import components.Transfert;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -32,45 +35,47 @@ public class Main {
 		Hashtable<Integer, Account> hashtableAccounts = generateHashtable(tableauDeComptes);
 		displayHashtable(hashtableAccounts);
 		//1.3.4 Creation of the flow array
-		Flow[] tableauDeFlux = generateFlows(tableauDeComptes);
+		//Flow[] tableauDeFlux = generateFlows(tableauDeComptes);
+		//2.1 JSON file of flows
+		Flow[] tableauDeFlux = loadFlowsFromJson("src/flows.json");
 		applyFlows(tableauDeFlux, hashtableAccounts);
-	    // Affichage final de la hashtable après application des Flows
-	    displayHashtable(hashtableAccounts);
+		// Affichage final de la hashtable après application des Flows
+		displayHashtable(hashtableAccounts);
 	}
 
 	//1.3.5 Updating accounts
 	public static void applyFlows(Flow[] flows, Hashtable<Integer, Account> hashtableAccounts) {
 
-	    for (Flow flow : flows) {
-	        if (flow instanceof Transfert) {
-	            // Transfert : maj des 2 comptes (source et cible)
-	            Transfert transfert = (Transfert) flow;
+		for (Flow flow : flows) {
+			if (flow instanceof Transfert) {
+				// Transfert : maj des 2 comptes (source et cible)
+				Transfert transfert = (Transfert) flow;
 
-	            Account target = hashtableAccounts.get(transfert.getTargetAccountNumber());
-	            Account source = hashtableAccounts.get(transfert.getSourceAccountNumber());
+				Account target = hashtableAccounts.get(transfert.getTargetAccountNumber());
+				Account source = hashtableAccounts.get(transfert.getSourceAccountNumber());
 
-	            if (target != null) target.setBalance(transfert);
-	            if (source != null) source.setBalance(transfert);
+				if (target != null) target.setBalance(transfert);
+				if (source != null) source.setBalance(transfert);
 
-	        } else {
-	            // Credit ou Debit : maj du compte cible uniquement
-	            Account account = hashtableAccounts.get(flow.getTargetAccountNumber());
-	            if (account != null) account.setBalance(flow);
-	        }
-	    }
+			} else {
+				// Credit ou Debit : maj du compte cible uniquement
+				Account account = hashtableAccounts.get(flow.getTargetAccountNumber());
+				if (account != null) account.setBalance(flow);
+			}
+		}
 
-	    // Vérification des soldes négatifs avec Optional, Predicate et Stream
-	    Predicate<Account> isNegative = account -> account.getBalance() < 0;
+		// Vérification des soldes négatifs avec Optional, Predicate et Stream
+		Predicate<Account> isNegative = account -> account.getBalance() < 0;
 
-	    hashtableAccounts.values().stream()
-	    .filter(isNegative)
-	    .forEach(account -> Optional.of(account)
-	        .ifPresent(a -> System.out.println("Solde négatif détecté : " + a.toString()))
-	    );
+		hashtableAccounts.values().stream()
+		.filter(isNegative)
+		.forEach(account -> Optional.of(account)
+				.ifPresent(a -> System.out.println("Solde négatif détecté : " + a.toString()))
+				);
 
 
 	}
-	
+
 	/**
 	 * genere un jeu d'essai de clients
 	 */
@@ -109,53 +114,53 @@ public class Main {
 		}
 		return hashtable;
 	}
-	
+
 	public static Flow[] generateFlows(Account[] accounts) {
-		
+
 		//add 2 days to the current date
-	    LocalDate localDate = LocalDate.now().plusDays(2);
-	    Date effectDate= Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+		LocalDate localDate = LocalDate.now().plusDays(2);
+		Date effectDate= Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-	    int nbCurrentAccounts = 0;
-	    int nbSavingsAccounts = 0;
-	    for (Account account : accounts) {
-	        if (account instanceof CurrentAccount) nbCurrentAccounts++;
-	        else if (account instanceof SavingsAccount) nbSavingsAccounts++;
-	    }
+		int nbCurrentAccounts = 0;
+		int nbSavingsAccounts = 0;
+		for (Account account : accounts) {
+			if (account instanceof CurrentAccount) nbCurrentAccounts++;
+			else if (account instanceof SavingsAccount) nbSavingsAccounts++;
+		}
 
-	    // 1 débit + crédits courants + crédits épargne + 1 transfert
-	    Flow[] flows = new Flow[1 + nbCurrentAccounts + nbSavingsAccounts + 1];
-	    int index = 0;
+		// 1 débit + crédits courants + crédits épargne + 1 transfert
+		Flow[] flows = new Flow[1 + nbCurrentAccounts + nbSavingsAccounts + 1];
+		int index = 0;
 
-	    // debit 50€ compte 1
-	    Debit debit = new Debit("Débit compte n°1", 50.0, 1, false);
-	    debit.setDate(effectDate);
-	    flows[index++] = debit;
+		// debit 50€ compte 1
+		Debit debit = new Debit("Débit compte n°1", 50.0, 1, false);
+		debit.setDate(effectDate);
+		flows[index++] = debit;
 
-	    // credit 100.50€ sur tous les comptes courants
-	    for (Account account : accounts) {
-	        if (account instanceof CurrentAccount) {
-	            Credit credit = new Credit("Crédit compte courant", 100.50, account.getAccountNumber(), false);
-	            credit.setDate(effectDate);
-	            flows[index++] = credit;
-	        }
-	    }
+		// credit 100.50€ sur tous les comptes courants
+		for (Account account : accounts) {
+			if (account instanceof CurrentAccount) {
+				Credit credit = new Credit("Crédit compte courant", 100.50, account.getAccountNumber(), false);
+				credit.setDate(effectDate);
+				flows[index++] = credit;
+			}
+		}
 
-	    // credit 1500€ sur tous les comptes épargne
-	    for (Account account : accounts) {
-	        if (account instanceof SavingsAccount) {
-	            Credit credit = new Credit("Crédit compte épargne", 1500.0, account.getAccountNumber(), false);
-	            credit.setDate(effectDate);
-	            flows[index++] = credit;
-	        }
-	    }
+		// credit 1500€ sur tous les comptes épargne
+		for (Account account : accounts) {
+			if (account instanceof SavingsAccount) {
+				Credit credit = new Credit("Crédit compte épargne", 1500.0, account.getAccountNumber(), false);
+				credit.setDate(effectDate);
+				flows[index++] = credit;
+			}
+		}
 
-	    // Transfert 50€ compte n°1 -> compte n°2
-	    Transfert transfert = new Transfert("Transfert n°1 vers n°2", 50.0, 2, false, 1);
-	    transfert.setDate(effectDate);
-	    flows[index] = transfert;
+		// Transfert 50€ compte n°1 -> compte n°2
+		Transfert transfert = new Transfert("Transfert n°1 vers n°2", 50.0, 2, false, 1);
+		transfert.setDate(effectDate);
+		flows[index] = transfert;
 
-	    return flows;
+		return flows;
 	}
 
 
@@ -185,6 +190,94 @@ public class Main {
 				))
 		.forEach(entry -> System.out.println("Clé : " + entry.getKey() + " -> " + entry.getValue().toString()));
 	}
-	
+
+
+	//2.1 JSON file of flows
+	public static Flow[] loadFlowsFromJson(String filePath) {
+
+		Path path = Paths.get(filePath);
+		StringBuilder jsonContent = new StringBuilder();
+
+		try (var reader = Files.newBufferedReader(path)) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				jsonContent.append(line.trim());
+			}
+		} catch (Exception e) {
+			System.out.println("probleme lecture fichier : " + e.getMessage());
+			return new Flow[0];
+		}
+
+		// Parsing JSON 
+		String json = jsonContent.toString();
+
+		// découpe par objets JSON
+		java.util.List<Flow> flowList = new java.util.ArrayList<>();
+		int start = 0;
+		while ((start = json.indexOf('{', start)) != -1) {
+			int end = json.indexOf('}', start);
+			if (end == -1) break;
+			String obj = json.substring(start, end + 1);
+			start = end + 1;
+
+			String type= extract(obj, "type");
+			String comment= extract(obj, "comment");
+			double amount = Double.parseDouble(extract(obj, "amount"));
+			int targetAccountNumber = Integer.parseInt(extract(obj, "targetAccountNumber"));
+			boolean effect= Boolean.parseBoolean(extract(obj, "effect"));
+			String sourceRaw= extract(obj, "sourceAccountNumber");
+
+			// +2 jours comme dans generateFlows
+			LocalDate localDate = LocalDate.now().plusDays(2);
+			Date effectDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+			Flow flow = null;
+			switch (type) {
+			case "Debit":
+				flow = new Debit(comment, amount, targetAccountNumber, effect);
+				break;
+			case "Credit":
+				flow = new Credit(comment, amount, targetAccountNumber, effect);
+				break;
+			case "Transfert":
+				int sourceAccountNumber = Integer.parseInt(sourceRaw);
+				flow = new Transfert(comment, amount, targetAccountNumber, effect, sourceAccountNumber);
+				break;
+			default:
+				System.out.println("Type de flux inconnu : " + type);
+			}
+
+			if (flow != null) {
+				flow.setDate(effectDate);
+				flowList.add(flow);
+			}
+		}
+
+		return flowList.toArray(new Flow[0]);
+	}
+
+	// extracteur du json
+	private static String extract(String obj, String key) {
+	    String search = "\"" + key + "\"";
+	    int keyIndex = obj.indexOf(search);
+	    if (keyIndex == -1) return "null";
+
+	    int colon = obj.indexOf(':', keyIndex) + 1;
+
+	    // Saute les espaces
+	    while (colon < obj.length() && obj.charAt(colon) == ' ') colon++;
+
+	    // recupere les strings
+	    if (obj.charAt(colon) == '"') {
+	        int end = obj.indexOf('"', colon + 1);
+	        return obj.substring(colon + 1, end);
+	    }
+
+	    // recupere les primitives
+	    int end = colon;
+	    while (end < obj.length() && obj.charAt(end) != ',' && obj.charAt(end) != '}') end++;
+	    return obj.substring(colon, end).trim();
+	}
+
 
 }

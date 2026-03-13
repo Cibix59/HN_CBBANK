@@ -1,0 +1,34 @@
+[
+  {
+    "type": "Debit",
+    "comment": "Debit compte 1",
+    "amount": 50.0,
+    "targetAccountNumber": 1,
+    "effect": false,
+    "sourceAccountNumber": null
+  },
+  {
+    "type": "Debit",
+    "comment": "Debit compte 2",
+    "amount": 150.0,
+    "targetAccountNumber": 2,
+    "effect": false,
+    "sourceAccountNumber": null
+  },
+  {
+    "type": "Credit",
+    "comment": "Crédit compte courant",
+    "amount": 100.50,
+    "targetAccountNumber": 1,
+    "effect": true,
+    "sourceAccountNumber": null
+  },
+  {
+    "type": "Credit",
+    "comment": "Crédit compte courant",
+    "amount": 100.50,
+    "targetAccountNumber": 3,
+    "effect": true,
+    "sourceAccountNumber": null
+  }
+]
